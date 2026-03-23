@@ -20,13 +20,21 @@ class VueConsole:
         return input("Ok, donne un nom à ton personnage : ").strip()
 
     def afficher_menu_action(self):
-        print("\n--- QUE VOULEZ-VOUS FAIRE ? ---")
-        print("1. Changer de lieu")
-        print("2. Attaquer un ennemi")
-        print("3. Récupérer des ressources")
-        print("4. Afficher l'inventaire")
-        print("5. Sauvegarder la partie")
-        print("6. Quitter le jeu")
+        """Affiche le menu d'action au joueur"""
+
+        choix = questionary.select(
+            "--- QUE VOULEZ-VOUS FAIRE ? ---",
+            choices = [
+                Choice(title = "1. Changer de lieu", value = "1"),
+                # Choice(title = "2. Attaquer un ennemi", value = "2"),
+                # Choice(title = "3. Récupérer des ressources", value = "3"),
+                # Choice(title = "4. Afficher l'inventaire", value = "4"),
+                # Choice(title = "5. Sauvegarder la partie", value = "5"),
+                Choice(title = "6. Quitter le jeu", value = "6")
+            ]
+        ).ask()
+
+        return choix
 
     def afficher_erreur(self, message_erreur: str):
         """Affiche le message d'erreur"""
@@ -40,11 +48,18 @@ class VueConsole:
         print(42 * "=")
 
     def afficher_menu_changer_lieu(self, liste_lieux, nom_lieu_actuel):
-        print("Ou veux-tu aller ?")
+        """Affiche les lieux disponible du jeu et le joueur sélectionne sa destination"""
+        lieux = []
 
-        # Affiche les lieux avec un index
         for x, lieu in enumerate(liste_lieux):
             if lieu.nom == nom_lieu_actuel:
-                print(f"{x + 1}. {lieu.nom} (Votre position)")
+                lieux.append(Choice(title=f"Rester à {nom_lieu_actuel}", value = liste_lieux[x]))
             else:
-                print(f"{x + 1}. {lieu.nom}")
+                lieux.append(Choice(title=f"Voyager vers {lieu.nom}", value = liste_lieux[x]))
+        
+        choix = questionary.select(
+            "Ou souhaites-tu aller ?",
+            choices = lieux
+        ).ask()
+
+        return choix

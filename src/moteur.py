@@ -58,46 +58,30 @@ class Jeu:
         select = self.vue.afficher_menu_accueil()
 
         match select:
-
             case "1":
                 self.nouveau_joueur()
-
             case "2":
                 self.charger_une_sauvegarde()
-                
-            case _:
-                self.vue.afficher_erreur_saisie()
 
     def menu_parti(self):
         """Affiche le menu une fois le joueur dans la partie..."""
-        
+
         while True:
-            self.vue.afficher_menu_action()
+            choix_action = self.vue.afficher_menu_action()
             
-            choix_action = input("Ton choix : ")
-
             match choix_action:
-
                 case "1":
                     self.changer_lieu()
-
                 case "2":
                     self.attaquer()
-
                 case "3":
                     self.prendre_ressource()
-
                 case "4":
                     self.afficher_inventaire()
-
                 case "5":
-                    self.sauvegarder()
-                    
+                    self.sauvegarder()   
                 case "6":
                     self.quitter()
-
-                case _:
-                    self.vue.afficher_erreur_saisie()
     
     def nouveau_joueur(self):
         """Demande au joueur de renseigner son nom de joueur,
@@ -124,16 +108,17 @@ class Jeu:
         print("Avec quelle personnage tu veux jouer ?")
 
     def changer_lieu(self):
-        """Affiche la liste des lieux et propose au joueur de choisir l'index de cette liste comme destination.
+        """Affiche la liste des lieux et propose au joueur de choisir une destination.
             Le joueur est avertie sur sa nouvelle destination et affiche la description du lieu"""
         
-        self.vue.afficher_menu_changer_lieu(self.lieux, self.lieu_actuel.nom)
+        lieu_choisi = self.vue.afficher_menu_changer_lieu(self.lieux, self.lieu_actuel.nom)
 
-        # Le joueur choisi l'index correspondant à la destination choisi
-        index_choisi = input("Renseigne le numéro de ta destination :")
+        # CTRL + C ou rester sur le lieu => return
+        if lieu_choisi is None or lieu_choisi == self.lieu_actuel:
+            return
 
         # Mise à jour du lieu actuel
-        self.lieu_actuel = self.lieux[int(index_choisi) - 1]
+        self.lieu_actuel = lieu_choisi
 
         # On informe le joueur de sa nouvelle destination
         self.vue.afficher_description_lieu(nom_lieu=self.lieu_actuel.nom, description_lieu=self.lieu_actuel.description)
