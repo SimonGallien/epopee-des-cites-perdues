@@ -1,0 +1,16 @@
+{
+    "lieux": [
+        {"nom": "Temple Oublié", "description": "Un temple envahi par la végétation", "ressources": {"or" : 50, "pierres" : 12}, "ennemis": ["serpent géant"]},
+        {"nom": "Forêt Maudite", "description": "Une forêt sombre et mystérieuse", "ressources": {"bois" : 22, "herbes" : 42}, "ennemis": ["loup spectral"]}
+    ],
+    "personnages": [
+        {"nom": "Arwen", "type": "allié", "force": 5, "dialogue": "Je peux t'aider à explorer, mais il me faut 10 unités d'or."},
+        {"nom": "Serpent Géant", "type": "ennemi", "force": 8, "dialogue": "Sssss... Tu ne passeras pas !"}
+    ],
+    "ressources": [
+        {"nom": "or", "utilite": "Acheter de l'aide"},
+        {"nom": "bois", "utilite": "Construire des abris"},
+        {"nom": "herbes", "utilite": "Redonne des points de vies"},
+        {"nom": "pierres", "utilite": "Donne de la force"}
+    ]
+}
