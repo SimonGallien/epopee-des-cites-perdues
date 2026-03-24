@@ -29,7 +29,7 @@ class VueConsole:
                 # Choice(title = "2. Attaquer un ennemi", value = "2"),
                 Choice(title = "3. Récupérer des ressources", value = "3"),
                 Choice(title = "4. Afficher l'inventaire", value = "4"),
-                # Choice(title = "5. Sauvegarder la partie", value = "5"),
+                Choice(title = "5. Sauvegarder la partie", value = "5"),
                 Choice(title = "6. Quitter le jeu", value = "6")
             ]
         ).ask()
@@ -104,4 +104,8 @@ class VueConsole:
         ).ask()
 
         return choix
+    
+    def informer_joueur(self, message: str):
+        """Affiche un message au joueur"""
+        print(message)
         

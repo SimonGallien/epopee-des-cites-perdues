@@ -4,9 +4,11 @@ from src.erreur import NomInvalideError
 from pathlib import Path
 import json
 import sys
+import os
 
 data_file = Path("data/data.json")
 data_joueur = Path("data/joueur.json")
+data_sauvegarde = Path("data/sauvegarde.json")
 
 class Jeu:
     """Classe Jeu représentant une partie"""
@@ -164,7 +166,27 @@ class Jeu:
     def sauvegarder(self):
         """Propose au joueur de valider la sauvegarde de sa partie en cours"""
 
-        print("Fonctionnalité 'Sauvegarder' à venir...")
+        sauvegarde = {
+            "force_joueur" : self.joueur.force,
+            "point_de_vie_joueur" : self.joueur.point_de_vie,
+            "inventaire_joueur" : self.joueur.inventaire,
+            "lieu_de_sauvegarde" : self.lieu_actuel.nom
+        }
+
+        base_sauvegarde = {}
+
+        if data_sauvegarde.exists():
+            with open(file=data_sauvegarde, mode="r", encoding="utf-8") as fichier_lecture:
+                try :
+                    base_sauvegarde = json.load(fp=fichier_lecture)
+                except json.JSONDecodeError:
+                    base_sauvegarde = {}
+
+        with open(data_sauvegarde, "w", encoding="utf-8") as fichier_ecriture:
+            base_sauvegarde[self.joueur.nom] = sauvegarde
+            json.dump(obj = base_sauvegarde, fp = fichier_ecriture ,indent=4)
+
+        self.vue.informer_joueur(message="Donner sauvegarder avec succès !")
 
     def quitter(self):
         """Quitter le jeu, propose de sauvegarder avant de valider pour quitter"""
