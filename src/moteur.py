@@ -1,4 +1,3 @@
-# La classe 'Jeu' qui gère les menus, ...
 from src.modeles import Joueur, Lieu, Personnage, Ressource
 from src.vue import VueConsole
 from src.erreur import NomInvalideError
@@ -127,12 +126,27 @@ class Jeu:
         """Affiche la liste des ressources disponible dans le lieu ou se trouve le joueur,
         Le joueur peux chosir d'ajouter ces ressources dans son inventaire"""
 
-        print("Ressources disponible :")
-        for ressource in self.lieu_actuel.ressources:
-            for r in self.ressources:
-                if ressource == r.nom:
-                    print(f"{ressource}, il y a {r.qte}")
-    
+        resultat = self.vue.afficher_ressources_disponible(self.lieu_actuel.ressources)
+
+        # Si le joueur choisi de faire retour sans rien récolter
+        if resultat == "RETOUR" or resultat is None:
+            return
+        
+        nom, qte = resultat
+
+        # On met à jour la qté disponible du lieu
+        self.lieu_actuel.ressources[nom] -= qte
+
+        # Si le lieu est vidé de sa ressource on la supprime de son dict
+        if self.lieu_actuel.ressources[nom] <= 0:
+            del self.lieu_actuel.ressources[nom]
+
+        # On ajoute la récolte dans l'inventaire du joueur
+        if nom in self.joueur.inventaire:
+            self.joueur.inventaire[nom] += qte
+        else:
+            self.joueur.inventaire[nom] = qte
+
     def attaquer(self):
         """Affiche le ou les ennemis avec leur niveau de force dans le lieu ou se trouve le joueur,
         le joueur peut choisir d'attaquer ou de battre en retraite"""

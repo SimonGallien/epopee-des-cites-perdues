@@ -38,7 +38,7 @@ class Lieu:
 class Joueur:
     """Classe représentant un joueur"""
 
-    def __init__(self, nom: str, force = 1, inventaire = None, point_de_vie = 100):
+    def __init__(self, nom: str, force = 1, inventaire: dict = None, point_de_vie = 100):
         """Initialisation de la classe joueur
 
         Args:
@@ -58,7 +58,11 @@ class Joueur:
         self.nom = nom
         self.force = force
         self.point_de_vie = point_de_vie
-        self.inventaire = inventaire
+
+        if inventaire is None:
+            self.inventaire = {}
+        else:
+            self.inventaire = inventaire
         
 class Ressource:
     """Classe représentant une ressource du jeu"""
