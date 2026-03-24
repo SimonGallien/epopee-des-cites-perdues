@@ -28,7 +28,7 @@ class VueConsole:
                 Choice(title = "1. Changer de lieu", value = "1"),
                 # Choice(title = "2. Attaquer un ennemi", value = "2"),
                 Choice(title = "3. Récupérer des ressources", value = "3"),
-                # Choice(title = "4. Afficher l'inventaire", value = "4"),
+                Choice(title = "4. Afficher l'inventaire", value = "4"),
                 # Choice(title = "5. Sauvegarder la partie", value = "5"),
                 Choice(title = "6. Quitter le jeu", value = "6")
             ]
@@ -82,3 +82,26 @@ class VueConsole:
         ).ask()
 
         return choix
+    
+    def afficher_inventaire(self, inventaire: dict) -> str:
+        """Affiche l'inventaire du joueur"""
+        
+        print("\n🎒 === INVENTAIRE DU JOUEUR ===\n")
+        
+        if not inventaire:
+            print("Ton sac à dos est vide !")
+        else:
+            for key, value in inventaire.items():
+                print(f"  🔹 {key.capitalize()} : {value}")
+                
+        print("\n===============================\n")
+        
+        choix = questionary.select(
+            "Appuie sur Entrée pour fermer l'inventaire",
+            choices=[
+                Choice(title="➡️  Retour", value="RETOUR")
+            ]
+        ).ask()
+
+        return choix
+        

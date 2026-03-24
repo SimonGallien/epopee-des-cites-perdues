@@ -76,7 +76,7 @@ class Jeu:
                 case "3":
                     self.prendre_ressource()
                 case "4":
-                    self.afficher_inventaire()
+                    self.inventaire()
                 case "5":
                     self.sauvegarder()   
                 case "6":
@@ -146,17 +146,20 @@ class Jeu:
             self.joueur.inventaire[nom] += qte
         else:
             self.joueur.inventaire[nom] = qte
+    
+    def inventaire(self):
+        """Appelle la fonction de la class Vue pour afficher l'inventaire"""
+
+        retour = self.vue.afficher_inventaire(self.joueur.inventaire)
+
+        if retour == "RETOUR" or retour is None:
+            return
 
     def attaquer(self):
         """Affiche le ou les ennemis avec leur niveau de force dans le lieu ou se trouve le joueur,
         le joueur peut choisir d'attaquer ou de battre en retraite"""
 
         print("Fonctionnalité 'Attaquer' à venir...")
-
-    def afficher_inventaire(self):
-        """Affiche l'inventaire du jeu et propose au joueur d'augmenter ses stats"""
-
-        print(f"Inventaire de {self.joueur.nom} : {self.joueur.inventaire}")
     
     def sauvegarder(self):
         """Propose au joueur de valider la sauvegarde de sa partie en cours"""
