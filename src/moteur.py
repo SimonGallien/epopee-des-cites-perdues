@@ -106,7 +106,48 @@ class Jeu:
         """Demande au joueur de sélectionner une sauvegarde,
         puis charge la partie correspondante depuis le fichier json"""
 
-        print("Avec quelle personnage tu veux jouer ?")
+        if not data_sauvegarde.exists():
+            self.vue.afficher_erreur("Aucune sauvegarde n'a été trouvée.")
+            return
+
+        # Initialisation d'une liste qui contiendra les noms de sauvegardes
+        liste_sauvegarde = []
+
+        # Ouverture du fichier pour récupérer les sauvegardes
+        with open(file=data_sauvegarde, mode="r", encoding="utf-8") as fichier:
+            try:
+                data = json.load(fichier)
+            except:
+                self.vue.afficher_erreur("Le fichier de sauvegarde est corrompu.")
+                return
+        
+        # On ajoute les noms de sauvegarde dans la liste_sauvegarde
+        for sauvegarde in data.keys():
+            liste_sauvegarde.append(sauvegarde)
+
+        # On affiche les sauvegardes au joueur
+        nom_sauvegarde = self.vue.afficher_sauvegardes(liste_sauvegarde)
+
+        if nom_sauvegarde is None or nom_sauvegarde == "RETOUR":
+            return
+
+        # On récupère les données de la sauvegarde sélectionner par le joueur
+        data_joueur = data[nom_sauvegarde]
+
+        force_joueur = data_joueur["force_joueur"]
+        pdv_joueur = data_joueur["point_de_vie_joueur"]
+        inventaire_joueur = data_joueur["inventaire_joueur"]
+        lieu_joueur = data_joueur["lieu_de_sauvegarde"]
+
+        self.joueur = Joueur(nom=nom_sauvegarde, force=force_joueur, inventaire=inventaire_joueur, point_de_vie=pdv_joueur)
+
+        for lieu in self.lieux:
+            if lieu.nom == lieu_joueur:
+                self.lieu_actuel = lieu
+                break
+
+        self.vue.afficher_description_lieu(self.lieu_actuel.nom, self.lieu_actuel.description)
+        self.menu_parti()
 
     def changer_lieu(self):
         """Affiche la liste des lieux et propose au joueur de choisir une destination.

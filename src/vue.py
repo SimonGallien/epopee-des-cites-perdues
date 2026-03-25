@@ -9,7 +9,7 @@ class VueConsole:
             "Bienvenue dans ce jeu d'aventure, que souhaites-tu faire ?",
             choices = [
                 Choice(title = "1. Nouvelle partie", value = "1"),
-                # Choice(title = "2. Charger une partie", value = "2")
+                Choice(title = "2. Charger une partie", value = "2")
             ]
         ).ask()
 
@@ -108,4 +108,19 @@ class VueConsole:
     def informer_joueur(self, message: str):
         """Affiche un message au joueur"""
         print(message)
-        
+    
+    def afficher_sauvegardes(self, liste_sauvegarde):
+        """Affiche les noms de sauvegardes au joueur"""
+        mes_choix = []
+        for sauvegarde in liste_sauvegarde:
+            mes_choix.append(Choice(title=sauvegarde, value=sauvegarde))
+
+        choix = questionary.select(
+            "Choisi une sauvegarde avec laquel tu veux joueur :",
+            choices = [mes_choix,
+                       Choice(title="Retour", value="RETOUR")
+                       ]
+
+        ).ask()
+
+        return choix
