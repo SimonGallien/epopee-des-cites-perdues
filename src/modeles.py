@@ -1,79 +1,109 @@
-# Les classes 'Joueur', 'Lieu' et 'Personnage'
-from src.erreur import NomInvalideError
+# Les classes 'Joueur', 'Lieu' et 'Personnage' et 'Ressource
+from sqlalchemy import Integer, String, ForeignKey
+from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, relationship
 
-class Personnage:
-    """Classe représentant un personnage non joueur du jeu"""
+class Base(DeclarativeBase):
+    pass
 
-    def __init__(self, nom: str, type: str, dialogue: str, force: int):
-        """Initialise un personnage
+# ========= Class principal =========
 
-        Args:
-            nom (str): Nom du personnage
-            type (str): Type du personnage (Allié ou ennemi)
-            dialogue (str): Dialogue du personnage
-            force (int): Force du personnage
-        """
-        self.nom = nom
-        self.type = type
-        self.dialogue = dialogue
-        self.force = force
+class Ressource(Base):
+    __tablename__ = "ressource"
 
-class Lieu:
-    """Classe représentant un lieu du jeu"""
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nom: Mapped[str] = mapped_column(String)
 
-    def __init__(self, nom: str, description: str, ressources: list, ennemis: list):
-        """Initialisation d'un lieu
+    inventaires_personnages: Mapped[list["RessourcePersonnage"]] = relationship(
+        back_populates="ressource", 
+        cascade="all, delete-orphan")
+    
+    inventaires_lieux: Mapped[list["RessourceLieu"]] = relationship(
+        back_populates="ressource", 
+        cascade="all, delete-orphan")
 
-        Args:
-            nom (str): Nom du lieu
-            description (str): Description du lieu
-            ressources (list): Ressource présent dans le lieu
-            ennemis (list): Ennemi présent dans le lieu
-        """
-        self.nom = nom
-        self.description = description
-        self.ressources = ressources
-        self.ennemi = ennemis
+    inventaires_joueur: Mapped[list["RessourceJoueur"]] = relationship(
+        back_populates="ressource", 
+        cascade="all, delete-orphan")
 
-class Joueur:
-    """Classe représentant un joueur"""
+    def __repr__(self):
+        return f"Ressource = {self.id!r}, nom = {self.nom!r}"    
 
-    def __init__(self, nom: str, force = 1, inventaire: dict = None, point_de_vie = 100):
-        """Initialisation de la classe joueur
+class Personnage(Base):
+    __tablename__ = "personnage"
 
-        Args:
-            nom (str): Nom du joueur
-            force (int, optional): Force du joueur
-            inventaire (dict, optional): Inventaire du joueur
-            point_de_vie (int, optional): Nombre de points de vies du joueur. 100 poinst par défaut.
-        """
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nom: Mapped[str] = mapped_column(String(30))
+    type: Mapped[str] = mapped_column(String(30))
+    dialogue: Mapped[str] = mapped_column(String(230))
+    force: Mapped[int] = mapped_column(Integer)
 
-        nom = nom.strip()
+    inventaire: Mapped[list["RessourcePersonnage"]] = relationship(
+        back_populates="personnage", 
+        cascade="all, delete-orphan")
 
-        if not nom:
-            raise NomInvalideError("Le nom de joueur ne peut pas être vide.")
-        elif len(nom) > 15:
-            raise NomInvalideError("le nom est trop long (15 caractères maximum).")
-        
-        self.nom = nom
-        self.force = force
-        self.point_de_vie = point_de_vie
+    def __repr__(self) -> str:
+        return f"Personnage(id={self.id!r}, nom={self.nom!r}, type={self.type!r}, dialogue={self.dialogue!r}, force={self.force!r})"
 
-        if inventaire is None:
-            self.inventaire = {}
-        else:
-            self.inventaire = inventaire
-        
-class Ressource:
-    """Classe représentant une ressource du jeu"""
+class Lieu(Base):
+    __tablename__ = "lieu"
 
-    def __init__(self, nom: str, utilite: str):
-        """Initialisation de la classe ressource
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nom: Mapped[str] = mapped_column(String(30))
+    description: Mapped[str] = mapped_column(String(230))
 
-        Args:
-            nom (str): Nom de la ressource
-            qte (int): Quantité de la ressource
-            utilite (str): utilité de la ressource
-        """
-        self.nom = nom
-        self.utilite = utilite
+    inventaire: Mapped[list["RessourceLieu"]] = relationship(
+        back_populates="lieu",
+        cascade="all, delete-orphan")
+    
+    def __repr__(self):
+        return f"Lieu = {self.id!r}, nom = {self.nom!r}, description = {self.description!r}" 
+
+class Joueur(Base):
+    __tablename__ = "joueur"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nom: Mapped[str] = mapped_column(String(42))
+    force: Mapped[int] = mapped_column(Integer, default=1)
+    point_de_vie: Mapped[int] = mapped_column(Integer, default=100)
+
+    inventaire: Mapped[list["RessourceJoueur"]] = relationship(
+        back_populates="joueur",
+        cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"Joueur = {self.id!r}, nom = {self.nom!r}, force = {self.force!r}, point de vie = {self.point_de_vie!r}"
+
+ # ========== Tables de liaisons ==========
+
+class RessourcePersonnage(Base):
+    __tablename__ = "ressource_personnage"
+
+    personnage_id: Mapped[int] = mapped_column(ForeignKey("personnage.id"), primary_key=True)
+    ressource_id: Mapped[int] = mapped_column(ForeignKey("ressource.id"), primary_key=True)
+
+    quantite: Mapped[int] = mapped_column(Integer, default=0)
+
+    personnage: Mapped["Personnage"] = relationship(back_populates="inventaire")
+    ressource: Mapped["Ressource"] = relationship(back_populates="inventaires_personnages") 
+
+class RessourceLieu(Base):
+    __tablename__ = "ressource_lieu"
+
+    lieu_id: Mapped[int] = mapped_column(ForeignKey("lieu.id"), primary_key=True)
+    ressource_id: Mapped[int] = mapped_column(ForeignKey("ressource.id"), primary_key=True)
+
+    quantite: Mapped[int] = mapped_column(Integer, default=0)
+
+    lieu: Mapped["Lieu"] = relationship(back_populates="inventaire")
+    ressource: Mapped["Ressource"] = relationship(back_populates="inventaires_lieux") 
+
+class RessourceJoueur(Base):
+    __tablename__ = "ressource_joueur"
+
+    joueur_id: Mapped[int] = mapped_column(ForeignKey("joueur.id"), primary_key=True)
+    ressource_id: Mapped[int] = mapped_column(ForeignKey("ressource.id"), primary_key=True)
+
+    quantite: Mapped[int] = mapped_column(Integer, default=0)
+
+    joueur: Mapped["Joueur"] = relationship(back_populates="inventaire")
+    ressource: Mapped["Ressource"] = relationship(back_populates="inventaires_joueur")
