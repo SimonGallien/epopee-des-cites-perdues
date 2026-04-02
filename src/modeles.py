@@ -11,7 +11,8 @@ class Ressource(Base):
     __tablename__ = "ressource"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    nom: Mapped[str] = mapped_column(String)
+    nom: Mapped[str] = mapped_column(String, unique=True)
+    utilite: Mapped[str] = mapped_column(String)
 
     inventaires_personnages: Mapped[list["RessourcePersonnage"]] = relationship(
         back_populates="ressource", 
@@ -32,7 +33,7 @@ class Personnage(Base):
     __tablename__ = "personnage"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    nom: Mapped[str] = mapped_column(String(30))
+    nom: Mapped[str] = mapped_column(String(30), unique=True)
     type: Mapped[str] = mapped_column(String(30))
     dialogue: Mapped[str] = mapped_column(String(230))
     force: Mapped[int] = mapped_column(Integer)
@@ -48,7 +49,7 @@ class Lieu(Base):
     __tablename__ = "lieu"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    nom: Mapped[str] = mapped_column(String(30))
+    nom: Mapped[str] = mapped_column(String(30), unique=True)
     description: Mapped[str] = mapped_column(String(230))
 
     inventaire: Mapped[list["RessourceLieu"]] = relationship(
@@ -62,7 +63,7 @@ class Joueur(Base):
     __tablename__ = "joueur"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    nom: Mapped[str] = mapped_column(String(42))
+    nom: Mapped[str] = mapped_column(String(42), unique=True)
     force: Mapped[int] = mapped_column(Integer, default=1)
     point_de_vie: Mapped[int] = mapped_column(Integer, default=100)
 

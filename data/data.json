@@ -4,8 +4,8 @@
         {"nom": "Forêt Maudite", "description": "Une forêt sombre et mystérieuse", "ressources": {"bois" : 22, "herbes" : 42}, "ennemis": ["loup spectral"]}
     ],
     "personnages": [
-        {"nom": "Arwen", "type": "allié", "force": 5, "dialogue": "Je peux t'aider à explorer, mais il me faut 10 unités d'or."},
-        {"nom": "Serpent Géant", "type": "ennemi", "force": 8, "dialogue": "Sssss... Tu ne passeras pas !"}
+        {"nom": "Arwen", "type": "allié", "force": 5, "dialogue": "Je peux t'aider à explorer, mais il me faut 10 unités d'or.", "ressources": {"or" : 50, "pierres" : 12}},
+        {"nom": "Serpent Géant", "type": "ennemi", "force": 8, "dialogue": "Sssss... Tu ne passeras pas !", "ressources": {"bois" : 22, "herbes" : 42}}
     ],
     "ressources": [
         {"nom": "or", "utilite": "Acheter de l'aide"},
