@@ -1,17 +1,10 @@
 from src.modeles import Joueur, Lieu, Personnage, RessourceJoueur, RessourceLieu, RessourcePersonnage
 from src.vue import VueConsole
 from src.erreur import NomInvalideError
-from pathlib import Path
-import json
 import sys
-import os
 from scripts.init_db import engine
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select
-
-data_file = Path("data/data.json")
-data_joueur = Path("data/joueur.json")
-data_sauvegarde = Path("data/sauvegarde.json")
 
 class Jeu:
     """Classe Jeu représentant une partie"""

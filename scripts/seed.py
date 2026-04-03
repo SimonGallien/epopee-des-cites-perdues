@@ -1,9 +1,11 @@
-from scripts.init_db import engine
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 import json
 from src.modeles import Lieu, RessourceLieu, Ressource, Personnage, RessourcePersonnage
+from scripts.init_db import engine, init_db
+
+init_db()
 
 with open(file="data/data.json", mode="r", encoding="utf-8") as fichier:
     data = json.load(fichier)

@@ -16,8 +16,9 @@ db_url = f"postgresql+psycopg://{db_user}:{db_password}@{db_host}:{db_port}/{db_
 
 engine = create_engine(db_url, echo=True)
 
-try:
-    Base.metadata.create_all(engine)
-    print("✅ Success! Toutes les tables sont créées.")
-except Exception as e:
-    print(e)
+def init_db():
+    try:
+        Base.metadata.create_all(engine)
+        print("✅ Success! Toutes les tables sont créées.")
+    except Exception as e:
+        print(e)
