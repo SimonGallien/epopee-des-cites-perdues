@@ -1,10 +1,13 @@
-from src.modeles import Joueur, Lieu, Personnage, Ressource
+from src.modeles import Joueur, Lieu, Personnage, RessourceJoueur, RessourceLieu, RessourcePersonnage
 from src.vue import VueConsole
 from src.erreur import NomInvalideError
 from pathlib import Path
 import json
 import sys
 import os
+from scripts.init_db import engine
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import select
 
 data_file = Path("data/data.json")
 data_joueur = Path("data/joueur.json")
@@ -19,39 +22,23 @@ class Jeu:
         self.lieux = []
         self.lieu_actuel = None
         self.personnages = []
-        self.ressources = []
         self.vue = VueConsole()
 
-    def charger_donnes(self):
-        """Cette fonction vient charger les données (Lieux, Personnages et Ressources) du fichier .json du Jeu"""
+    def charger_data(self):
+        """Charger les données du jeu stocké sur le serveur postgres
+        """
 
-        with open(data_file, "r", encoding="utf-8") as fichier:
-            data = json.load(fichier)
-
-            for lieu in data["lieux"]:
-                objet_lieu = Lieu(
-                    nom = lieu["nom"],
-                    description = lieu["description"],
-                    ennemis = lieu["ennemis"],
-                    ressources = lieu["ressources"]
-                )
-                self.lieux.append(objet_lieu)
-
-            for personnage in data["personnages"]:
-                objet_personnage = Personnage(
-                    nom = personnage["nom"],
-                    type = personnage["type"],
-                    force = personnage["force"],
-                    dialogue = personnage["dialogue"]
-                )
-                self.personnages.append(objet_personnage)
-
-            for ressource in data["ressources"]:
-                objet_ressource = Ressource(
-                    nom = ressource["nom"],
-                    utilite = ressource["utilite"],
-                )
-                self.ressources.append(objet_ressource)
+        with Session(engine) as session:
+            self.lieux = session.scalars(
+                select(Lieu)
+                .options(joinedload(Lieu.inventaire).joinedload(RessourceLieu.ressource))
+                .order_by(Lieu.id)
+                ).unique().all()
+            self.personnages = session.scalars(
+                select(Personnage)
+                .options(joinedload(Personnage.inventaire).joinedload(RessourcePersonnage.ressource))
+                .order_by(Personnage.id)
+                ).unique().all()
     
     def menu_accueil(self):
         """Affiche le menu de démarrage du jeu avec la possibilité de charger un Joueur existant ou en créé un nouveau"""
@@ -169,31 +156,54 @@ class Jeu:
         """Affiche la liste des ressources disponible dans le lieu ou se trouve le joueur,
         Le joueur peux chosir d'ajouter ces ressources dans son inventaire"""
 
-        resultat = self.vue.afficher_ressources_disponible(self.lieu_actuel.ressources)
+        liste_inventaire = {ressource_lieu.ressource.nom: ressource_lieu.quantite for ressource_lieu in self.lieu_actuel.inventaire}
+
+        resultat = self.vue.afficher_ressources_disponible(liste_inventaire)
 
         # Si le joueur choisi de faire retour sans rien récolter
         if resultat == "RETOUR" or resultat is None:
             return
         
         nom, qte = resultat
+        ressource = None
 
-        # On met à jour la qté disponible du lieu
-        self.lieu_actuel.ressources[nom] -= qte
-
-        # Si le lieu est vidé de sa ressource on la supprime de son dict
-        if self.lieu_actuel.ressources[nom] <= 0:
-            del self.lieu_actuel.ressources[nom]
+        for r in self.lieu_actuel.inventaire:
+            if r.ressource.nom == nom:
+                ressource = r.ressource #Utiliser si le joueur n'a pas cette ressource dans son inventaire
+                r.quantite -= qte
+                if r.quantite <= 0:
+                    self.lieu_actuel.inventaire.remove(r)
+                break
+        
+        if ressource is None:
+            self.vue.afficher_erreur("Ressource introuvable")
+            return
 
         # On ajoute la récolte dans l'inventaire du joueur
-        if nom in self.joueur.inventaire:
-            self.joueur.inventaire[nom] += qte
-        else:
-            self.joueur.inventaire[nom] = qte
+        ressource_trouvee = False
+
+        for r in self.joueur.inventaire:
+            if r.ressource.nom == nom:
+                r.quantite += qte
+                ressource_trouvee = True
+                break
+
+        if not ressource_trouvee:
+            # créer un nouveau RessourceJoueur
+            id_joueur = self.joueur.id
+            self.joueur.inventaire.append(
+                RessourceJoueur(
+                    quantite=qte, 
+                    ressource = ressource, 
+                    joueur = self.joueur)
+            )
     
     def inventaire(self):
         """Appelle la fonction de la class Vue pour afficher l'inventaire"""
 
-        retour = self.vue.afficher_inventaire(self.joueur.inventaire)
+        inventaire_joueur = {ji.ressource.nom : ji.quantite for ji in self.joueur.inventaire}
+
+        retour = self.vue.afficher_inventaire(inventaire_joueur)
 
         if retour == "RETOUR" or retour is None:
             return
