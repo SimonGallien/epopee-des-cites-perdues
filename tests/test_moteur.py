@@ -1,20 +1,37 @@
 from src.moteur import Jeu
-from src.modeles import Lieu, Personnage, Ressource
-from unittest.mock import MagicMock
-
-def test_charger_donnes():
-    """Test si la fonction instencie bien le contenu du json en Objet de la bonne classe"""
+from unittest.mock import MagicMock, patch
     
+def test_charger_data():
+
+    # On crée une fausse partie
     ma_partie = Jeu()
-    ma_partie.charger_donnes()
 
-    assert len(ma_partie.lieux) > 0
-    assert len(ma_partie.personnages) > 0
-    assert len(ma_partie.ressources) > 0
+    # On crée de faux objets
+    faux_lieu = MagicMock()
+    faux_personnage = MagicMock()
 
-    assert all(isinstance(lieu, Lieu) for lieu in ma_partie.lieux)
-    assert all(isinstance(personnage, Personnage) for personnage in ma_partie.personnages)
-    assert all(isinstance(ressource, Ressource) for ressource in ma_partie.ressources)
+    # On remplace Session dans moteur.py par un faux
+    with patch("src.moteur.Session") as FausseSession:
+
+        # Session(engine) retourne un faux objet
+        fausse_instance = FausseSession.return_value
+
+        # "with Session() as session" → __enter__ retourne le faux session
+        fausse_session = fausse_instance.__enter__.return_value
+
+        # Premier appel à scalars() → retourne les lieux
+        # Deuxième appel à scalars() → retourne les personnages
+        fausse_session.scalars.return_value.unique.return_value.all.side_effect = [
+            [faux_lieu],
+            [faux_personnage]
+        ]
+
+        # On appelle la vraie fonction
+        ma_partie.charger_data()
+
+    # On vérifie que les lieux et personnages sont bien chargés
+    assert len(ma_partie.lieux) == 1
+    assert len(ma_partie.personnages) == 1
 
 def test_menu_jeu_choix_1_appelle_nouveau_joueur():
     """Vérifie que taper '1' à l'accueil déclenche bien la création de joueur"""

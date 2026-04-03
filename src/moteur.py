@@ -1,14 +1,10 @@
-from src.modeles import Joueur, Lieu, Personnage, Ressource
+from src.modeles import Joueur, Lieu, Personnage, RessourceJoueur, RessourceLieu, RessourcePersonnage
 from src.vue import VueConsole
 from src.erreur import NomInvalideError
-from pathlib import Path
-import json
 import sys
-import os
-
-data_file = Path("data/data.json")
-data_joueur = Path("data/joueur.json")
-data_sauvegarde = Path("data/sauvegarde.json")
+from scripts.init_db import engine
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import select
 
 class Jeu:
     """Classe Jeu représentant une partie"""
@@ -19,39 +15,23 @@ class Jeu:
         self.lieux = []
         self.lieu_actuel = None
         self.personnages = []
-        self.ressources = []
         self.vue = VueConsole()
 
-    def charger_donnes(self):
-        """Cette fonction vient charger les données (Lieux, Personnages et Ressources) du fichier .json du Jeu"""
+    def charger_data(self):
+        """Charger les données du jeu stocké sur le serveur postgres
+        """
 
-        with open(data_file, "r", encoding="utf-8") as fichier:
-            data = json.load(fichier)
-
-            for lieu in data["lieux"]:
-                objet_lieu = Lieu(
-                    nom = lieu["nom"],
-                    description = lieu["description"],
-                    ennemis = lieu["ennemis"],
-                    ressources = lieu["ressources"]
-                )
-                self.lieux.append(objet_lieu)
-
-            for personnage in data["personnages"]:
-                objet_personnage = Personnage(
-                    nom = personnage["nom"],
-                    type = personnage["type"],
-                    force = personnage["force"],
-                    dialogue = personnage["dialogue"]
-                )
-                self.personnages.append(objet_personnage)
-
-            for ressource in data["ressources"]:
-                objet_ressource = Ressource(
-                    nom = ressource["nom"],
-                    utilite = ressource["utilite"],
-                )
-                self.ressources.append(objet_ressource)
+        with Session(engine) as session:
+            self.lieux = session.scalars(
+                select(Lieu)
+                .options(joinedload(Lieu.inventaire).joinedload(RessourceLieu.ressource))
+                .order_by(Lieu.id)
+                ).unique().all()
+            self.personnages = session.scalars(
+                select(Personnage)
+                .options(joinedload(Personnage.inventaire).joinedload(RessourcePersonnage.ressource))
+                .order_by(Personnage.id)
+                ).unique().all()
     
     def menu_accueil(self):
         """Affiche le menu de démarrage du jeu avec la possibilité de charger un Joueur existant ou en créé un nouveau"""
@@ -106,24 +86,21 @@ class Jeu:
         """Demande au joueur de sélectionner une sauvegarde,
         puis charge la partie correspondante depuis le fichier json"""
 
-        if not data_sauvegarde.exists():
-            self.vue.afficher_erreur("Aucune sauvegarde n'a été trouvée.")
-            return
-
-        # Initialisation d'une liste qui contiendra les noms de sauvegardes
         liste_sauvegarde = []
 
-        # Ouverture du fichier pour récupérer les sauvegardes
-        with open(file=data_sauvegarde, mode="r", encoding="utf-8") as fichier:
-            try:
-                data = json.load(fichier)
-            except:
-                self.vue.afficher_erreur("Le fichier de sauvegarde est corrompu.")
-                return
-        
-        # On ajoute les noms de sauvegarde dans la liste_sauvegarde
-        for sauvegarde in data.keys():
-            liste_sauvegarde.append(sauvegarde)
+        with Session(engine) as session:
+            all_save = session.scalars(
+                select(Joueur)
+                .options(joinedload(Joueur.lieu_actuel), joinedload(Joueur.inventaire).joinedload(RessourceJoueur.ressource))
+                .order_by(Joueur.id)
+                ).unique().all()
+            
+        for joueur in all_save:
+            liste_sauvegarde.append(joueur.nom)
+
+        if not liste_sauvegarde:
+            self.vue.afficher_erreur("Aucune sauvegarde n'a été trouvée.")
+            return
 
         # On affiche les sauvegardes au joueur
         nom_sauvegarde = self.vue.afficher_sauvegardes(liste_sauvegarde)
@@ -132,18 +109,10 @@ class Jeu:
             return
 
         # On récupère les données de la sauvegarde sélectionner par le joueur
-        data_joueur = data[nom_sauvegarde]
-
-        force_joueur = data_joueur["force_joueur"]
-        pdv_joueur = data_joueur["point_de_vie_joueur"]
-        inventaire_joueur = data_joueur["inventaire_joueur"]
-        lieu_joueur = data_joueur["lieu_de_sauvegarde"]
-
-        self.joueur = Joueur(nom=nom_sauvegarde, force=force_joueur, inventaire=inventaire_joueur, point_de_vie=pdv_joueur)
-
-        for lieu in self.lieux:
-            if lieu.nom == lieu_joueur:
-                self.lieu_actuel = lieu
+        for joueur in all_save:
+            if joueur.nom == nom_sauvegarde:
+                self.joueur = joueur
+                self.lieu_actuel = self.joueur.lieu_actuel
                 break
 
         self.vue.afficher_description_lieu(self.lieu_actuel.nom, self.lieu_actuel.description)
@@ -169,31 +138,54 @@ class Jeu:
         """Affiche la liste des ressources disponible dans le lieu ou se trouve le joueur,
         Le joueur peux chosir d'ajouter ces ressources dans son inventaire"""
 
-        resultat = self.vue.afficher_ressources_disponible(self.lieu_actuel.ressources)
+        liste_inventaire = {ressource_lieu.ressource.nom: ressource_lieu.quantite for ressource_lieu in self.lieu_actuel.inventaire}
+
+        resultat = self.vue.afficher_ressources_disponible(liste_inventaire)
 
         # Si le joueur choisi de faire retour sans rien récolter
         if resultat == "RETOUR" or resultat is None:
             return
         
         nom, qte = resultat
+        ressource = None
 
-        # On met à jour la qté disponible du lieu
-        self.lieu_actuel.ressources[nom] -= qte
-
-        # Si le lieu est vidé de sa ressource on la supprime de son dict
-        if self.lieu_actuel.ressources[nom] <= 0:
-            del self.lieu_actuel.ressources[nom]
+        for r in self.lieu_actuel.inventaire:
+            if r.ressource.nom == nom:
+                ressource = r.ressource #Utiliser si le joueur n'a pas cette ressource dans son inventaire
+                r.quantite -= qte
+                if r.quantite <= 0:
+                    self.lieu_actuel.inventaire.remove(r)
+                break
+        
+        if ressource is None:
+            self.vue.afficher_erreur("Ressource introuvable")
+            return
 
         # On ajoute la récolte dans l'inventaire du joueur
-        if nom in self.joueur.inventaire:
-            self.joueur.inventaire[nom] += qte
-        else:
-            self.joueur.inventaire[nom] = qte
+        ressource_trouvee = False
+
+        for r in self.joueur.inventaire:
+            if r.ressource.nom == nom:
+                r.quantite += qte
+                ressource_trouvee = True
+                break
+
+        if not ressource_trouvee:
+            # créer un nouveau RessourceJoueur
+            id_joueur = self.joueur.id
+            self.joueur.inventaire.append(
+                RessourceJoueur(
+                    quantite=qte, 
+                    ressource = ressource, 
+                    joueur = self.joueur)
+            )
     
     def inventaire(self):
         """Appelle la fonction de la class Vue pour afficher l'inventaire"""
 
-        retour = self.vue.afficher_inventaire(self.joueur.inventaire)
+        inventaire_joueur = {ji.ressource.nom : ji.quantite for ji in self.joueur.inventaire}
+
+        retour = self.vue.afficher_inventaire(inventaire_joueur)
 
         if retour == "RETOUR" or retour is None:
             return
@@ -205,27 +197,19 @@ class Jeu:
         print("Fonctionnalité 'Attaquer' à venir...")
     
     def sauvegarder(self):
-        """Propose au joueur de valider la sauvegarde de sa partie en cours"""
+        """
+        Propose au joueur de valider la sauvegarde de sa partie en cours
+        Ce qui est sauvegardé:
+            - force_joueur
+            - point_de_vie_joueur
+            - inventaire_joueur
+            - lieu_actuel
+        """
+        self.joueur.lieu_actuel = self.lieu_actuel
 
-        sauvegarde = {
-            "force_joueur" : self.joueur.force,
-            "point_de_vie_joueur" : self.joueur.point_de_vie,
-            "inventaire_joueur" : self.joueur.inventaire,
-            "lieu_de_sauvegarde" : self.lieu_actuel.nom
-        }
-
-        base_sauvegarde = {}
-
-        if data_sauvegarde.exists():
-            with open(file=data_sauvegarde, mode="r", encoding="utf-8") as fichier_lecture:
-                try :
-                    base_sauvegarde = json.load(fp=fichier_lecture)
-                except json.JSONDecodeError:
-                    base_sauvegarde = {}
-
-        with open(data_sauvegarde, "w", encoding="utf-8") as fichier_ecriture:
-            base_sauvegarde[self.joueur.nom] = sauvegarde
-            json.dump(obj = base_sauvegarde, fp = fichier_ecriture ,indent=4)
+        with Session(engine) as session:
+            session.merge(self.joueur)
+            session.commit()
 
         self.vue.informer_joueur(message="Donner sauvegarder avec succès !")
 

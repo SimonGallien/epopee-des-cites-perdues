@@ -1,0 +1,24 @@
+services:
+
+  db:
+    image: postgres
+    container_name: cites_perdus_db
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - 5432:5432
+
+  adminer:
+    image: adminer
+    container_name: interface_db
+    restart: always
+    ports:
+      - 8080:8080
+  
+volumes:
+  postgres_data:
