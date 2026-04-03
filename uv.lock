@@ -72,10 +72,14 @@ dependencies = [
     { name = "dotenv" },
     { name = "fastapi" },
     { name = "psycopg", extra = ["binary"] },
-    { name = "pytest" },
     { name = "questionary" },
     { name = "sqlalchemy" },
     { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
 ]
 
 [package.metadata]
@@ -83,11 +87,13 @@ requires-dist = [
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "fastapi", specifier = ">=0.135.2" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.3" },
-    { name = "pytest", specifier = ">=9.0.2" },
     { name = "questionary", specifier = ">=2.1.1" },
     { name = "sqlalchemy", specifier = ">=2.0.48" },
     { name = "uvicorn", specifier = ">=0.42.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "fastapi"
