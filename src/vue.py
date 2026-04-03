@@ -117,9 +117,7 @@ class VueConsole:
 
         choix = questionary.select(
             "Choisi une sauvegarde avec laquel tu veux joueur :",
-            choices = [mes_choix,
-                       Choice(title="Retour", value="RETOUR")
-                       ]
+            choices = mes_choix + [Choice(title="Retour", value="RETOUR")]
 
         ).ask()
 

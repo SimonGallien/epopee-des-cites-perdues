@@ -93,24 +93,21 @@ class Jeu:
         """Demande au joueur de sélectionner une sauvegarde,
         puis charge la partie correspondante depuis le fichier json"""
 
-        if not data_sauvegarde.exists():
-            self.vue.afficher_erreur("Aucune sauvegarde n'a été trouvée.")
-            return
-
-        # Initialisation d'une liste qui contiendra les noms de sauvegardes
         liste_sauvegarde = []
 
-        # Ouverture du fichier pour récupérer les sauvegardes
-        with open(file=data_sauvegarde, mode="r", encoding="utf-8") as fichier:
-            try:
-                data = json.load(fichier)
-            except:
-                self.vue.afficher_erreur("Le fichier de sauvegarde est corrompu.")
-                return
-        
-        # On ajoute les noms de sauvegarde dans la liste_sauvegarde
-        for sauvegarde in data.keys():
-            liste_sauvegarde.append(sauvegarde)
+        with Session(engine) as session:
+            all_save = session.scalars(
+                select(Joueur)
+                .options(joinedload(Joueur.lieu_actuel), joinedload(Joueur.inventaire).joinedload(RessourceJoueur.ressource))
+                .order_by(Joueur.id)
+                ).unique().all()
+            
+        for joueur in all_save:
+            liste_sauvegarde.append(joueur.nom)
+
+        if not liste_sauvegarde:
+            self.vue.afficher_erreur("Aucune sauvegarde n'a été trouvée.")
+            return
 
         # On affiche les sauvegardes au joueur
         nom_sauvegarde = self.vue.afficher_sauvegardes(liste_sauvegarde)
@@ -119,18 +116,10 @@ class Jeu:
             return
 
         # On récupère les données de la sauvegarde sélectionner par le joueur
-        data_joueur = data[nom_sauvegarde]
-
-        force_joueur = data_joueur["force_joueur"]
-        pdv_joueur = data_joueur["point_de_vie_joueur"]
-        inventaire_joueur = data_joueur["inventaire_joueur"]
-        lieu_joueur = data_joueur["lieu_de_sauvegarde"]
-
-        self.joueur = Joueur(nom=nom_sauvegarde, force=force_joueur, inventaire=inventaire_joueur, point_de_vie=pdv_joueur)
-
-        for lieu in self.lieux:
-            if lieu.nom == lieu_joueur:
-                self.lieu_actuel = lieu
+        for joueur in all_save:
+            if joueur.nom == nom_sauvegarde:
+                self.joueur = joueur
+                self.lieu_actuel = self.joueur.lieu_actuel
                 break
 
         self.vue.afficher_description_lieu(self.lieu_actuel.nom, self.lieu_actuel.description)
@@ -224,7 +213,7 @@ class Jeu:
             - lieu_actuel
         """
         self.joueur.lieu_actuel = self.lieu_actuel
-        
+
         with Session(engine) as session:
             session.merge(self.joueur)
             session.commit()
