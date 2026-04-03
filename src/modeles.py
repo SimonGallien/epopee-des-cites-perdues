@@ -67,6 +67,9 @@ class Joueur(Base):
     force: Mapped[int] = mapped_column(Integer, default=1)
     point_de_vie: Mapped[int] = mapped_column(Integer, default=100)
 
+    lieu_actuel_id: Mapped[int] = mapped_column(ForeignKey("lieu.id"), nullable=True)
+    lieu_actuel: Mapped[Lieu] = relationship()
+
     inventaire: Mapped[list["RessourceJoueur"]] = relationship(
         back_populates="joueur",
         cascade="all, delete-orphan")

@@ -215,27 +215,19 @@ class Jeu:
         print("Fonctionnalité 'Attaquer' à venir...")
     
     def sauvegarder(self):
-        """Propose au joueur de valider la sauvegarde de sa partie en cours"""
-
-        sauvegarde = {
-            "force_joueur" : self.joueur.force,
-            "point_de_vie_joueur" : self.joueur.point_de_vie,
-            "inventaire_joueur" : self.joueur.inventaire,
-            "lieu_de_sauvegarde" : self.lieu_actuel.nom
-        }
-
-        base_sauvegarde = {}
-
-        if data_sauvegarde.exists():
-            with open(file=data_sauvegarde, mode="r", encoding="utf-8") as fichier_lecture:
-                try :
-                    base_sauvegarde = json.load(fp=fichier_lecture)
-                except json.JSONDecodeError:
-                    base_sauvegarde = {}
-
-        with open(data_sauvegarde, "w", encoding="utf-8") as fichier_ecriture:
-            base_sauvegarde[self.joueur.nom] = sauvegarde
-            json.dump(obj = base_sauvegarde, fp = fichier_ecriture ,indent=4)
+        """
+        Propose au joueur de valider la sauvegarde de sa partie en cours
+        Ce qui est sauvegardé:
+            - force_joueur
+            - point_de_vie_joueur
+            - inventaire_joueur
+            - lieu_actuel
+        """
+        self.joueur.lieu_actuel = self.lieu_actuel
+        
+        with Session(engine) as session:
+            session.merge(self.joueur)
+            session.commit()
 
         self.vue.informer_joueur(message="Donner sauvegarder avec succès !")
 
