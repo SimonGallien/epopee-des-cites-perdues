@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends
-from .routers import lieux, personnages
+from .routers import lieux, personnages, joueurs
 
 app = FastAPI()
 
@@ -17,4 +17,10 @@ app.include_router(
     personnages.router,
     prefix="/personnages",
     tags=["personnages"]
+)
+
+app.include_router(
+    joueurs.router,
+    prefix="/joueurs",
+    tags=["joueurs"]
 )

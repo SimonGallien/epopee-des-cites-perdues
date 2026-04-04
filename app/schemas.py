@@ -31,10 +31,11 @@ class RessourcePersonnageSchema(BaseModel):
 class JoueurSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    id: int
     nom: str
     force: int
     point_de_vie: int
-    lieu_actuel: "LieuSchema"
+    lieu_actuel: "LieuSchema |  None" = None
     inventaire: list["RessourceJoueurSchema"]
 
 class RessourceJoueurSchema(BaseModel):
@@ -48,3 +49,6 @@ class RessourceSchema(BaseModel):
 
     nom: str
     utilite: str
+
+class JoueurCreateSchema(BaseModel):
+    nom: str
