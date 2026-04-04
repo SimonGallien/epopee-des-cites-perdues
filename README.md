@@ -2,13 +2,11 @@
 
 > Moteur de jeu RPG textuel en Python — bac à sable technique pour l'apprentissage des pratiques MLOps et Software Engineering.
 
-![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=flat-square&logo=python&logoColor=white)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=flat-square)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Pytest](https://img.shields.io/badge/Pytest-passing-009688?style=flat-square&logo=pytest&logoColor=white)
-![CI/CD](https://img.shields.io/badge/CI%2F-CD-GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)
-
+[![Python package](https://github.com/SimonGallien/epopee-des-cites-perdues/actions/workflows/ci.yml/badge.svg)](https://github.com/SimonGallien/epopee-des-cites-perdues/actions/workflows/ci.yml)
 ---
 
 ## 🎯 Objectif du projet
@@ -24,7 +22,7 @@ Ce projet est avant tout un **bac à sable technique (Proof of Concept)** conçu
 | Tests unitaires | Pytest + unittest.mock |
 | Containerisation | Docker + Docker Compose |
 | API REST | FastAPI *(à venir)* |
-| CI/CD | GitHub Actions *(à venir)* |
+| CI/CD | GitHub Actions ✅ |
 | Gestion des dépendances | `uv` (packaging moderne Python) |
 
 ---
@@ -34,7 +32,7 @@ Ce projet est avant tout un **bac à sable technique (Proof of Concept)** conçu
 Le joueur incarne un explorateur chargé de redonner vie à des mondes oubliés.
 
 - Création de profil joueur avec validation métier
-- Génération du monde (Lieux, Personnages, Ressources) via `data/data.json`
+- Génération du monde (Lieux, Personnages, Ressources) via PostgreSQL
 - Système de voyage et d'exploration
 - Gestion d'inventaire avec récolte de ressources
 - Sauvegarde et chargement de parties
@@ -53,14 +51,20 @@ epopee-des-cites-perdues/
 │   ├── modeles.py       # Entités SQLAlchemy (Joueur, Lieu, Ressource...)
 │   ├── moteur.py        # Contrôleur — logique du jeu
 │   ├── vue.py           # Vue console — toute l'UI terminal
-│   ├── erreur.py        # Exceptions métier personnalisées
-│   └── database.py      # Configuration SQLAlchemy + engine
+│   └── erreur.py        # Exceptions métier personnalisées
+├── scripts/
+│   ├── init_db.py       # Configuration SQLAlchemy + création des tables
+│   └── seed.py          # Initialisation des données en base
 ├── tests/
 │   ├── __init__.py
 │   └── test_moteur.py   # Tests unitaires Pytest
 ├── data/
 │   └── data.json        # Contenu du jeu (lieux, personnages, ressources)
+├── .github/
+│   └── workflows/
+│       └── ci.yml       # Pipeline CI GitHub Actions
 ├── main.py
+├── Dockerfile
 ├── docker-compose.yml
 ├── pyproject.toml
 └── .env                 # Variables d'environnement (non versionné)
@@ -94,7 +98,7 @@ Les tables de liaison (`RessourceJoueur`, `RessourceLieu`, `RessourcePersonnage`
 
 ### Prérequis
 
-- [Python 3.12+](https://www.python.org/)
+- [Python 3.14+](https://www.python.org/)
 - [uv](https://docs.astral.sh/uv/) — gestionnaire de paquets moderne
 - [Docker](https://www.docker.com/) + Docker Compose
 
@@ -121,9 +125,10 @@ cp .env.example .env
 ```env
 DB_USER=postgres
 DB_PASSWORD=postgres
-DB_NAME=epopee
+POSTGRES_DB=epopee
 DB_HOST=localhost
 DB_PORT=5432
+PYTHONPATH=.
 ```
 
 ### 4. Lancer la base de données
@@ -171,8 +176,8 @@ ma_partie.nouveau_joueur.assert_called_once()
 - [x] Modèles SQLAlchemy 2.0
 - [x] Docker Compose + PostgreSQL
 - [x] Tests unitaires Pytest
-- [ ] Migration JSON → PostgreSQL (Alembic)
+- [x] Migration JSON → PostgreSQL
 - [ ] API REST FastAPI (save / load / state)
-- [ ] CI/CD GitHub Actions (lint + tests automatiques)
+- [x] CI/CD GitHub Actions (lint + tests automatiques)
 - [ ] Déploiement AWS (EC2 / ECS)
 
