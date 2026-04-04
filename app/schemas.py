@@ -1,0 +1,50 @@
+from pydantic import BaseModel, ConfigDict
+
+class LieuSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    nom: str
+    description: str
+    inventaire: list["RessourceLieuSchema"]
+
+class RessourceLieuSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    quantite: int
+    ressource: "RessourceSchema"
+
+class PersonnageSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    nom: str
+    type: str
+    dialogue: str
+    force: int
+    inventaire: list["RessourcePersonnageSchema"]
+
+class RessourcePersonnageSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    quantite: int
+    ressource: "RessourceSchema"
+
+class JoueurSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    nom: str
+    force: int
+    point_de_vie: int
+    lieu_actuel: "LieuSchema"
+    inventaire: list["RessourceJoueurSchema"]
+
+class RessourceJoueurSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    quantite: int
+    ressource: "RessourceSchema"
+
+class RessourceSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    nom: str
+    utilite: str
