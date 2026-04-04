@@ -2,9 +2,11 @@ from src.modeles import Joueur, Lieu, Personnage, RessourceJoueur, RessourceLieu
 from src.vue import VueConsole
 from src.erreur import NomInvalideError
 import sys
-from scripts.init_db import engine
+from scripts.init_db import get_engine
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select
+
+engine = get_engine()
 
 class Jeu:
     """Classe Jeu représentant une partie"""

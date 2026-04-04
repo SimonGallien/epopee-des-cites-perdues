@@ -3,9 +3,11 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 import json
 from src.modeles import Lieu, RessourceLieu, Ressource, Personnage, RessourcePersonnage
-from scripts.init_db import engine, init_db
+from scripts.init_db import get_engine, init_db
 
 init_db()
+
+engine = get_engine()
 
 with open(file="data/data.json", mode="r", encoding="utf-8") as fichier:
     data = json.load(fichier)

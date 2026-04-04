@@ -1,5 +1,8 @@
-from src.moteur import Jeu
 from unittest.mock import MagicMock, patch
+
+# Patch avant l'import de Jeu
+with patch("scripts.init_db.get_engine", return_value=MagicMock()):
+    from src.moteur import Jeu
     
 def test_charger_data():
 
