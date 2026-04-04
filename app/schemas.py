@@ -5,7 +5,7 @@ class LieuSchema(BaseModel):
 
     nom: str
     description: str
-    inventaire: list["RessourceLieuSchema"]
+    # inventaire: list["RessourceLieuSchema"] = []
 
 class RessourceLieuSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -35,7 +35,7 @@ class JoueurSchema(BaseModel):
     nom: str
     force: int
     point_de_vie: int
-    lieu_actuel: "LieuSchema |  None" = None
+    lieu_actuel: "LieuSchema | None" = None
     inventaire: list["RessourceJoueurSchema"]
 
 class RessourceJoueurSchema(BaseModel):
@@ -52,3 +52,9 @@ class RessourceSchema(BaseModel):
 
 class JoueurCreateSchema(BaseModel):
     nom: str
+
+class JoueurUpdateSchema(BaseModel):
+    force: int | None = None
+    point_de_vie: int | None = None
+    lieu_actuel_id: int | None = None
+    # inventaire: list["RessourceJoueurSchema"]
