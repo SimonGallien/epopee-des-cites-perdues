@@ -1,0 +1,18 @@
+services:
+    
+  seed:
+    build: .
+    container_name: epopee_seed
+    env_file:
+      - .env
+    command: python3 scripts/seed.py
+    restart: "no"
+
+  app:
+    build: .
+    container_name: epopee_app
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
