@@ -93,7 +93,10 @@ class Jeu:
         with Session(engine) as session:
             all_save = session.scalars(
                 select(Joueur)
-                .options(joinedload(Joueur.lieu_actuel), joinedload(Joueur.inventaire).joinedload(RessourceJoueur.ressource))
+                .options(
+                    joinedload(Joueur.lieu_actuel).joinedload(Lieu.inventaire).joinedload(RessourceLieu.ressource),
+                    joinedload(Joueur.inventaire).joinedload(RessourceJoueur.ressource)
+                )
                 .order_by(Joueur.id)
                 ).unique().all()
             
