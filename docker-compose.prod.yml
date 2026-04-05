@@ -14,5 +14,7 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      - PYTHONPATH=/usr/local/app      
     ports:
       - 8000:8000
