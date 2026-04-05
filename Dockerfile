@@ -1,6 +1,8 @@
 FROM python:3.14-slim
 WORKDIR /usr/local/app
 
+ENV PYTHONPATH=/usr/local/app
+
 # Install the application dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt

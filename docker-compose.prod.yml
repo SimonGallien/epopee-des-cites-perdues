@@ -13,8 +13,6 @@ services:
     container_name: epopee_app
     restart: always
     env_file:
-      - .env
-    environment:
-      - PYTHONPATH=/usr/local/app      
+      - .env   
     ports:
       - 8000:8000
