@@ -205,4 +205,3 @@ ma_partie.nouveau_joueur.assert_called_once()
 - [x] CI/CD GitHub Actions
 - [x] Déploiement AWS (EC2 + RDS)
 - [ ] Prometheus + Grafana (monitoring)
-- [ ] Inventaire joueur via API
